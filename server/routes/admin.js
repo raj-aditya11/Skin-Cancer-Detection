@@ -2,6 +2,8 @@
  * admin.js — Admin routes for managing users and scans
  */
 const express = require("express");
+const path = require("path");
+const fs = require("fs");
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
 const User = require("../models/User");
@@ -112,6 +114,63 @@ router.get("/scans", async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch scans" });
+  }
+});
+
+/**
+ * DELETE /api/admin/scans/:id
+ * Delete a single scan by ID and its uploaded image
+ */
+router.delete("/scans/:id", async (req, res) => {
+  try {
+    const scan = await Scan.findById(req.params.id);
+    if (!scan) {
+      return res.status(404).json({ message: "Scan not found" });
+    }
+
+    // Remove the uploaded image file from disk
+    if (scan.imagePath) {
+      const fullPath = path.join(__dirname, "..", scan.imagePath);
+      if (fs.existsSync(fullPath)) {
+        fs.unlinkSync(fullPath);
+      }
+    }
+
+    await Scan.findByIdAndDelete(req.params.id);
+    res.json({ message: "Scan deleted successfully" });
+  } catch (error) {
+    console.error("Delete scan error:", error);
+    res.status(500).json({ message: "Failed to delete scan" });
+  }
+});
+
+/**
+ * DELETE /api/admin/scans
+ * Delete all scans (bulk purge)
+ */
+router.delete("/scans", async (req, res) => {
+  try {
+    // Find all scans to delete their image files
+    const scans = await Scan.find().select("imagePath");
+
+    // Remove uploaded images from disk
+    for (const scan of scans) {
+      if (scan.imagePath) {
+        const fullPath = path.join(__dirname, "..", scan.imagePath);
+        if (fs.existsSync(fullPath)) {
+          fs.unlinkSync(fullPath);
+        }
+      }
+    }
+
+    const result = await Scan.deleteMany({});
+    res.json({
+      message: `${result.deletedCount} scan(s) deleted successfully`,
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("Bulk delete scans error:", error);
+    res.status(500).json({ message: "Failed to delete scans" });
   }
 });
 

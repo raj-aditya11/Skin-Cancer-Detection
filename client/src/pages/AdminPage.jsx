@@ -2,11 +2,11 @@
  * AdminPage.jsx — Admin panel for managing users, scans, and viewing stats
  */
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
 import {
   Shield, Users, Activity, AlertTriangle, TrendingUp, Trash2,
-  Eye, Clock, Loader2, BarChart3
+  Eye, Clock, Loader2, BarChart3, AlertCircle, CheckCircle2, X
 } from 'lucide-react';
 
 const AdminPage = () => {
@@ -15,10 +15,21 @@ const AdminPage = () => {
   const [users, setUsers] = useState([]);
   const [scans, setScans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
+  const [deletingAll, setDeletingAll] = useState(false);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  // Auto-dismiss toast after 3 seconds
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const loadData = async () => {
     setLoading(true);
@@ -45,6 +56,41 @@ const AdminPage = () => {
       loadData();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete user');
+    }
+  };
+
+  const deleteScan = async (scanId) => {
+    if (!window.confirm('Are you sure you want to delete this scan? This action cannot be undone.')) return;
+    setDeletingId(scanId);
+    try {
+      await api.delete(`/api/admin/scans/${scanId}`);
+      setScans((prev) => prev.filter((s) => s._id !== scanId));
+      // Update stats inline
+      if (stats) {
+        setStats((prev) => ({ ...prev, totalScans: Math.max(0, prev.totalScans - 1) }));
+      }
+      setToast({ type: 'success', message: 'Scan deleted successfully' });
+    } catch (err) {
+      setToast({ type: 'error', message: err.response?.data?.message || 'Failed to delete scan' });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const deleteAllScans = async () => {
+    if (!window.confirm(`Delete ALL ${scans.length} scan(s)? This will permanently remove all scan records and images. This action cannot be undone.`)) return;
+    setDeletingAll(true);
+    try {
+      const res = await api.delete('/api/admin/scans');
+      setScans([]);
+      if (stats) {
+        setStats((prev) => ({ ...prev, totalScans: 0, highRiskScans: 0, recentScans: 0 }));
+      }
+      setToast({ type: 'success', message: res.data.message || 'All scans deleted' });
+    } catch (err) {
+      setToast({ type: 'error', message: err.response?.data?.message || 'Failed to delete scans' });
+    } finally {
+      setDeletingAll(false);
     }
   };
 
@@ -176,32 +222,120 @@ const AdminPage = () => {
 
           {/* Scans Tab */}
           {tab === 'scans' && (
-            <div className="space-y-3">
-              {scans.map((scan) => (
-                <div key={scan._id} className="glass-card p-4 flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-xl overflow-hidden bg-surface-100 flex-shrink-0">
-                    <img src={scan.imagePath} alt="Scan" className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-surface-900">{scan.prediction}</span>
-                      <span className={`badge-${scan.riskLevel.toLowerCase()}`}>{scan.riskLevel}</span>
+            <div className="space-y-4">
+              {/* Header with Delete All button */}
+              {scans.length > 0 && (
+                <motion.div
+                  className="flex items-center justify-between"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <p className="text-sm text-surface-500">
+                    {scans.length} scan{scans.length !== 1 ? 's' : ''} found
+                  </p>
+                  <button
+                    onClick={deleteAllScans}
+                    disabled={deletingAll}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 rounded-lg text-sm font-medium transition-all border border-red-200 hover:border-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    id="btn-delete-all-scans"
+                  >
+                    {deletingAll ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                    {deletingAll ? 'Deleting...' : 'Delete All Scans'}
+                  </button>
+                </motion.div>
+              )}
+
+              {/* Scan cards */}
+              <AnimatePresence mode="popLayout">
+                {scans.map((scan) => (
+                  <motion.div
+                    key={scan._id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9, x: -50 }}
+                    transition={{ duration: 0.2 }}
+                    className="glass-card p-4 flex items-center gap-4"
+                  >
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-surface-100 flex-shrink-0">
+                      <img src={scan.imagePath} alt="Scan" className="w-full h-full object-cover" />
                     </div>
-                    <div className="text-sm text-surface-500">
-                      by {scan.userId?.name || 'Unknown'} • {(scan.confidence * 100).toFixed(1)}% • {new Date(scan.createdAt).toLocaleDateString('en-IN')}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-surface-900">{scan.prediction}</span>
+                        <span className={`badge-${scan.riskLevel.toLowerCase()}`}>{scan.riskLevel}</span>
+                      </div>
+                      <div className="text-sm text-surface-500">
+                        by {scan.userId?.name || 'Unknown'} • {(scan.confidence * 100).toFixed(1)}% • {new Date(scan.createdAt).toLocaleDateString('en-IN')}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
+                    <button
+                      onClick={() => deleteScan(scan._id)}
+                      disabled={deletingId === scan._id}
+                      className="flex-shrink-0 p-2.5 rounded-lg text-surface-400 hover:text-red-500 hover:bg-red-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Delete this scan"
+                      id={`btn-delete-scan-${scan._id}`}
+                    >
+                      {deletingId === scan._id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                    </button>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+
               {scans.length === 0 && (
-                <div className="text-center py-12 text-surface-500">No scans recorded yet</div>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-16"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-surface-100 flex items-center justify-center mx-auto mb-4">
+                    <Activity className="w-8 h-8 text-surface-300" />
+                  </div>
+                  <p className="text-surface-500 font-medium">No scans recorded yet</p>
+                  <p className="text-sm text-surface-400 mt-1">Scans will appear here once users upload images</p>
+                </motion.div>
               )}
             </div>
           )}
         </motion.div>
       </div>
+
+      {/* Toast notification */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 50, x: '-50%' }}
+            className={`fixed bottom-6 left-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl border backdrop-blur-sm ${
+              toast.type === 'success'
+                ? 'bg-green-50/95 border-green-200 text-green-800'
+                : 'bg-red-50/95 border-red-200 text-red-800'
+            }`}
+          >
+            {toast.type === 'success' ? (
+              <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+            ) : (
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            )}
+            <span className="text-sm font-medium">{toast.message}</span>
+            <button onClick={() => setToast(null)} className="ml-2 p-0.5 hover:opacity-70 transition-opacity">
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
 export default AdminPage;
+
