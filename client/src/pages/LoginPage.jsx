@@ -48,7 +48,7 @@ const LoginPage = () => {
               <Shield className="w-7 h-7 text-white" />
             </div>
             <h1 className="font-display text-2xl font-bold text-surface-900">Welcome Back</h1>
-            <p className="text-surface-500 text-sm mt-1">Sign in to your DermAI account</p>
+            <p className="text-surface-500 text-sm mt-1">Sign in to your OncoCutis account</p>
           </div>
 
           {/* Error message */}

@@ -163,4 +163,35 @@ router.get("/:id", auth, async (req, res) => {
   }
 });
 
+/**
+ * DELETE /api/scan/:id
+ * Delete a scan owned by the current user
+ */
+router.delete("/:id", auth, async (req, res) => {
+  try {
+    const scan = await Scan.findOne({
+      _id: req.params.id,
+      userId: req.user._id,
+    });
+
+    if (!scan) {
+      return res.status(404).json({ message: "Scan not found" });
+    }
+
+    // Remove the uploaded image file from disk
+    if (scan.imagePath) {
+      const fullPath = path.join(__dirname, "..", scan.imagePath);
+      if (fs.existsSync(fullPath)) {
+        fs.unlinkSync(fullPath);
+      }
+    }
+
+    await Scan.findByIdAndDelete(req.params.id);
+    res.json({ message: "Scan deleted successfully" });
+  } catch (error) {
+    console.error("Delete scan error:", error);
+    res.status(500).json({ message: "Failed to delete scan" });
+  }
+});
+
 module.exports = router;

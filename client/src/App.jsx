@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import ScrollToTop from './components/ScrollToTop';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -33,6 +34,7 @@ function App() {
           },
         }}
       />
+      <ScrollToTop />
       <Navbar />
       <main className="flex-1">
         <Routes>

@@ -1,14 +1,15 @@
 /**
- * DashboardPage.jsx — User's scan history with details
+ * DashboardPage.jsx — User's scan history with details and delete
  */
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 import {
   LayoutDashboard, Clock, Eye, Upload, AlertTriangle, CheckCircle,
-  ChevronRight, Activity, Loader2, FileX
+  ChevronRight, Activity, Loader2, FileX, Trash2, X
 } from 'lucide-react';
 
 const DashboardPage = () => {
@@ -16,6 +17,8 @@ const DashboardPage = () => {
   const [scans, setScans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({});
+  const [deleteId, setDeleteId] = useState(null); // scan ID pending delete confirmation
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchScans = async () => {
@@ -31,6 +34,29 @@ const DashboardPage = () => {
     };
     fetchScans();
   }, []);
+
+  const handleDelete = async (scanId) => {
+    setDeleting(true);
+    try {
+      await api.delete(`/api/scan/${scanId}`);
+      setScans((prev) => prev.filter((s) => s._id !== scanId));
+      setPagination((prev) => ({ ...prev, total: (prev.total || 1) - 1 }));
+      toast.success('Scan deleted successfully');
+    } catch (err) {
+      console.error('Delete failed:', err);
+      toast.error('Failed to delete scan');
+    } finally {
+      setDeleting(false);
+      setDeleteId(null);
+    }
+  };
+
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    // imagePath is stored as "/uploads/filename.jpg"
+    // The Vite proxy forwards /uploads to the backend
+    return imagePath;
+  };
 
   const riskColors = {
     Low: 'badge-low',
@@ -104,17 +130,30 @@ const DashboardPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
                 >
-                  <Link
-                    to={`/results/${scan._id}`}
-                    className="glass-card p-4 flex items-center gap-4 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group"
-                  >
+                  <div className="glass-card p-4 flex items-center gap-4 group">
                     {/* Thumbnail */}
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-surface-100 flex-shrink-0">
-                      <img src={scan.imagePath} alt="Scan" className="w-full h-full object-cover" />
-                    </div>
+                    <Link to={`/results/${scan._id}`} className="w-16 h-16 rounded-xl overflow-hidden bg-surface-100 flex-shrink-0">
+                      {getImageUrl(scan.imagePath) ? (
+                        <img
+                          src={getImageUrl(scan.imagePath)}
+                          alt="Scan"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.parentElement.classList.add('flex', 'items-center', 'justify-center');
+                            const icon = document.createElement('div');
+                            icon.innerHTML = '🔬';
+                            icon.className = 'text-2xl';
+                            e.target.parentElement.appendChild(icon);
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-2xl">🔬</div>
+                      )}
+                    </Link>
 
                     {/* Info */}
-                    <div className="flex-1 min-w-0">
+                    <Link to={`/results/${scan._id}`} className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-surface-900 truncate">{scan.prediction}</h3>
                         <span className={riskColors[scan.riskLevel]}>{scan.riskLevel}</span>
@@ -129,17 +168,94 @@ const DashboardPage = () => {
                           {new Date(scan.createdAt).toLocaleDateString('en-IN')}
                         </span>
                       </div>
-                    </div>
+                    </Link>
+
+                    {/* Delete button */}
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDeleteId(scan._id);
+                      }}
+                      className="p-2 rounded-lg text-surface-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200 flex-shrink-0"
+                      title="Delete scan"
+                    >
+                      <Trash2 className="w-4.5 h-4.5" />
+                    </button>
 
                     {/* Arrow */}
-                    <ChevronRight className="w-5 h-5 text-surface-400 group-hover:text-primary-500 transition-colors flex-shrink-0" />
-                  </Link>
+                    <Link to={`/results/${scan._id}`} className="flex-shrink-0">
+                      <ChevronRight className="w-5 h-5 text-surface-400 group-hover:text-primary-500 transition-colors" />
+                    </Link>
+                  </div>
                 </motion.div>
               ))}
             </div>
           )}
         </motion.div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteId && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            onClick={() => !deleting && setDeleteId(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-lg text-surface-900">Delete Scan</h3>
+                  <p className="text-sm text-surface-500">This action cannot be undone</p>
+                </div>
+              </div>
+
+              <p className="text-surface-600 text-sm mb-6">
+                Are you sure you want to permanently delete this scan? The uploaded image and all results will be removed.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeleteId(null)}
+                  disabled={deleting}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium border border-surface-200 text-surface-700 rounded-xl hover:bg-surface-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDelete(deleteId)}
+                  disabled={deleting}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {deleting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

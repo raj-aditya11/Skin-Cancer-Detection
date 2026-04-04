@@ -58,7 +58,7 @@ const SignupPage = () => {
               <Shield className="w-7 h-7 text-white" />
             </div>
             <h1 className="font-display text-2xl font-bold text-surface-900">Create Account</h1>
-            <p className="text-surface-500 text-sm mt-1">Join DermAI for AI-powered skin screening</p>
+            <p className="text-surface-500 text-sm mt-1">Join OncoCutis for AI-powered skin screening</p>
           </div>
 
           {error && (

@@ -133,7 +133,7 @@ const HomePage = () => {
       </section>
 
       {/* Stats Bar */}
-      <section className="relative z-10 -mt-16">
+      <section className="relative z-10 mt-4">
         <div className="section-container">
           <motion.div
             className="glass-card p-1 grid grid-cols-2 md:grid-cols-4 gap-1"
@@ -166,7 +166,7 @@ const HomePage = () => {
             viewport={{ once: true }}
           >
             <h2 className="font-display text-4xl font-bold text-surface-900 mb-4">
-              Why Choose <span className="gradient-text">DermAI</span>?
+              Why Choose <span className="gradient-text">OncoCutis</span>?
             </h2>
             <p className="text-surface-500 text-lg max-w-2xl mx-auto">
               Advanced AI technology meets healthcare accessibility. Our platform is designed 

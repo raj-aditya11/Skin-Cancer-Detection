@@ -31,10 +31,10 @@ const Footer = () => {
                 <Shield className="w-4 h-4 text-white" />
               </div>
               <span className="font-display font-bold text-lg text-white">
-                Derm<span className="text-primary-400">AI</span>
+                Onco<span className="text-primary-400">Cutis</span>
               </span>
             </div>
-            <p className="text-surface-400 text-sm leading-relaxed max-w-md">
+            <p className="text-surface-200 text-sm leading-relaxed max-w-md">
               AI-powered skin cancer detection optimized for Indian skin tones. 
               Using advanced deep learning and Grad-CAM explainability to make 
               dermatological screening accessible to everyone.
@@ -52,7 +52,7 @@ const Footer = () => {
                 { to: '/dashboard', label: 'My Scans' },
               ].map(({ to, label }) => (
                 <li key={to}>
-                  <Link to={to} className="text-surface-400 hover:text-primary-400 text-sm transition-colors">
+                  <Link to={to} className="text-surface-200 hover:text-primary-400 text-sm transition-colors">
                     {label}
                   </Link>
                 </li>
@@ -70,7 +70,7 @@ const Footer = () => {
                 { href: 'https://www.aad.org/', label: 'AAD Guidelines' },
               ].map(({ href, label }) => (
                 <li key={href}>
-                  <a href={href} target="_blank" rel="noopener noreferrer" className="text-surface-400 hover:text-primary-400 text-sm transition-colors">
+                  <a href={href} target="_blank" rel="noopener noreferrer" className="text-surface-200 hover:text-primary-400 text-sm transition-colors">
                     {label}
                   </a>
                 </li>
@@ -81,11 +81,11 @@ const Footer = () => {
 
         {/* Bottom bar */}
         <div className="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-surface-500 text-sm">
-            © {new Date().getFullYear()} DermAI. Built with ❤️ for healthcare accessibility.
+          <p className="text-white text-sm">
+            © {new Date().getFullYear()} OncoCutis. Built with ❤️ for healthcare accessibility.
           </p>
-          <p className="flex items-center gap-1 text-surface-500 text-sm">
-            Made with <Heart className="w-3.5 h-3.5 text-red-400" /> in India
+          <p className="flex items-center gap-1 text-white text-sm">
+            Made with <Heart className="w-3.5 h-3.5 text-red-500" fill="currentColor" /> in India
           </p>
         </div>
       </div>

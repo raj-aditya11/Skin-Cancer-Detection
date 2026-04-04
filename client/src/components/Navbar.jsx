@@ -42,7 +42,7 @@ const Navbar = () => {
               <Shield className="w-5 h-5 text-white" />
             </div>
             <span className="font-display font-bold text-xl text-white">
-              Derm<span className="text-primary-400">AI</span>
+              Onco<span className="text-primary-400">Cutis</span>
             </span>
           </Link>
 
@@ -72,7 +72,7 @@ const Navbar = () => {
                   <User className="w-4 h-4 text-primary-400" />
                   <span className="text-sm text-surface-200 font-medium">{user?.name}</span>
                 </div>
-                <button onClick={handleLogout} className="flex items-center gap-1.5 px-3 py-2 text-surface-400 hover:text-red-400 transition-colors text-sm">
+                <button onClick={handleLogout} className="flex items-center gap-1.5 px-3 py-2 text-white hover:text-red-400 transition-colors text-sm">
                   <LogOut className="w-4 h-4" />
                   Logout
                 </button>
