@@ -1,147 +1,128 @@
-# DermAI — AI-Powered Skin Cancer Detection
+# 🧠 AI-Powered Skin Cancer Detection System
 
-An AI-powered skin cancer detection web application optimized for Indian skin tones (Fitzpatrick IV–VI), running entirely on your local machine.
+An intelligent web application that analyzes skin lesion images and predicts potential skin cancer types, with a special focus on Indian skin tones (Fitzpatrick IV–VI).
+
+---
+
+## 🚀 Features
+
+* 📸 Upload skin images for instant analysis
+* 🧠 AI-based prediction (Benign, Malignant, etc.)
+* 📊 Confidence score with visual indicators
+* 🔍 Grad-CAM heatmap for explainability
+* 📁 User dashboard with scan history
+* 📚 Educational resources on skin cancer
+* 👨‍⚕️ Doctor connect interface (UI-based)
+
+---
 
 ## 🏗️ Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | React 18 + Tailwind CSS 3 + Framer Motion |
-| **Backend** | Node.js + Express |
-| **Database** | MongoDB (local) |
-| **AI Model** | TensorFlow/Keras (MobileNetV2) |
-| **Model API** | FastAPI (Python) |
+**Frontend:** React, Tailwind CSS
+**Backend:** Node.js, Express.js
+**Database:** MongoDB
+**AI Model:** TensorFlow / Keras (CNN - MobileNetV2 / EfficientNet)
+**Model API:** Flask / FastAPI
 
-## 📁 Project Structure
+---
 
-```
-Skin-Cancer-Detection/
-├── client/          # React frontend (port 3000)
-├── server/          # Node.js backend (port 5001)
-├── model/           # Python AI model + FastAPI (port 5000)
-└── README.md
-```
+## 🧭 System Architecture
 
-## 🚀 Setup Instructions
+The system follows a 3-layer architecture:
 
-### Prerequisites
+* **User Layer:** Image upload, result viewing
+* **Web Application Layer:** Handles UI, authentication, API routing
+* **AI Model Layer:** Processes image and returns prediction
 
-- **Node.js** 18+ and npm
-- **Python** 3.8+ and pip
-- **MongoDB** Community Server (running on localhost:27017)
+---
 
-### 1. Clone and Install
+## 🧪 How It Works
+
+1. User uploads a skin image
+2. Image is sent to backend server
+3. Backend forwards it to AI model API
+4. Model processes image and predicts class
+5. Grad-CAM generates a heatmap
+6. Results are stored and displayed to user
+
+---
+
+## ⚙️ Installation & Setup (Local)
+
+### 1. Clone the repository
 
 ```bash
-# Install server dependencies
-cd server
-npm install
-
-# Install client dependencies
-cd ../client
-npm install
-
-# Install Python dependencies
-cd ../model
-pip install -r requirements.txt
+git clone https://github.com/your-username/your-repo-name.git
+cd your-repo-name
 ```
 
-### 2. Configure Environment
+### 2. Setup Backend
 
-The server `.env` file is pre-configured for local development:
-
-```env
-PORT=5001
-MONGO_URI=mongodb://localhost:27017/skincare_db
-JWT_SECRET=skin_cancer_detection_super_secret_key_2024
-JWT_EXPIRE=7d
-MODEL_API_URL=http://localhost:5000
-ADMIN_EMAIL=admin@skincare.com
-ADMIN_PASSWORD=admin123
-```
-
-### 3. Start All Services
-
-You need **3 terminal windows**:
-
-**Terminal 1 — Python Model API (port 5000):**
-```bash
-cd model
-python app.py
-```
-> First run will download MobileNetV2 weights (~14MB) and create the demo model.
-
-**Terminal 2 — Node.js Backend (port 5001):**
 ```bash
 cd server
+npm install
 npm start
 ```
 
-**Terminal 3 — React Frontend (port 3000):**
+### 3. Setup Frontend
+
 ```bash
 cd client
-npm run dev
+npm install
+npm start
 ```
 
-### 4. Open the App
+### 4. Setup AI Model API
 
-Visit **http://localhost:3000** in your browser.
+```bash
+cd model
+pip install -r requirements.txt
+python app.py
+```
 
-## 👤 Default Accounts
+---
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@skincare.com | admin123 |
+## 🧠 AI Model Details
 
-## 🔬 AI Model
+* Transfer learning using MobileNetV2 / EfficientNet
+* Image preprocessing (224x224, normalization)
+* Trained on ISIC dataset with augmentation
+* Optimized for better performance on Indian skin tones
 
-### Demo Model
-The app ships with a demo MobileNetV2 model that works immediately for testing the full pipeline. It uses pretrained ImageNet weights with a random classification head — predictions won't be medically accurate until trained on the ISIC dataset.
+---
 
-### Training on ISIC Dataset
-To train on real data:
+## 📊 Future Improvements
 
-1. Download the [ISIC 2019 Dataset](https://challenge.isic-archive.com/data/)
-2. Organize images into class folders:
-   ```
-   dataset/
-   ├── actinic_keratosis/
-   ├── basal_cell_carcinoma/
-   ├── benign_keratosis/
-   ├── dermatofibroma/
-   ├── melanocytic_nevus/
-   ├── melanoma/
-   └── vascular_lesion/
-   ```
-3. Run training:
-   ```bash
-   cd model
-   python train.py --data_dir /path/to/dataset --epochs 30
-   ```
+* Integration with real dermatologists
+* More diverse Indian dataset
+* Mobile application support
+* Improved accuracy with larger datasets
 
-### Indian Skin Tone Optimization
-- CLAHE enhancement in LAB color space for better contrast on darker skin
-- Data augmentation with brightness and color jitter
-- Compatible with Fitzpatrick IV–VI skin types
+---
 
-## 🏥 Features
+## ⚠️ Disclaimer
 
-- ✅ JWT Authentication (signup/login)
-- ✅ Image upload with drag & drop
-- ✅ AI prediction with 7-class classification
-- ✅ Grad-CAM heatmap visualization
-- ✅ Confidence scores and risk levels
-- ✅ Scan history dashboard
-- ✅ Educational content on skin cancer
-- ✅ Doctor Connect (mock UI)
-- ✅ Admin panel
-- ✅ Responsive design
-- ✅ Medical Disclaimer
+This application is not a medical diagnosis tool. Please consult a certified dermatologist for professional advice.
 
-## ⚠️ Medical Disclaimer
+---
 
-**This application is not a medical diagnosis tool.** It is designed for educational and screening purposes only. Results should not replace professional medical advice. Please consult a certified dermatologist for proper diagnosis and treatment.
+## 📚 References
 
-## 📄 License
+* ISIC Dataset: https://www.isic-archive.com
+* MobileNetV2 Paper: https://arxiv.org/abs/1801.04381
+* Grad-CAM Paper: https://arxiv.org/abs/1610.02391
 
-This project is for educational purposes only.
+---
+
+## 👨‍💻 Authors
+
+* Aditya Raj
+* Kamakshi Mudgal
+* Niharika Arora
+* Tanmay Krishna
+
+---
+
+## ⭐ Acknowledgements
+
+Special thanks to the open-source community and medical datasets that made this project possible.
