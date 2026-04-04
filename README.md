@@ -19,9 +19,13 @@ An intelligent web application that analyzes skin lesion images and predicts pot
 ## 🏗️ Tech Stack
 
 **Frontend:** React, Tailwind CSS
+
 **Backend:** Node.js, Express.js
+
 **Database:** MongoDB
+
 **AI Model:** TensorFlow / Keras (CNN - MobileNetV2 / EfficientNet)
+
 **Model API:** Flask / FastAPI
 
 ---
